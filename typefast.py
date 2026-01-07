@@ -102,11 +102,20 @@ class TypingStats:
             return False
         
         # Check if current keys are mastered
-        difficulties = [self.get_difficulty_score(k) for k in self.unlocked_keys]
+        difficulties = [self.get_difficulty_score(k) for k in self.unlocked_keys if k.isalpha()]
         avg_difficulty = sum(difficulties) / len(difficulties) if difficulties else 100
         
-        # Unlock new key when average difficulty is low and sufficient practice
-        return avg_difficulty < 20 and self.total_keys > len(self.unlocked_keys) * 50
+        # Get number of letter keys (not counting space)
+        num_letter_keys = len([k for k in self.unlocked_keys if k.isalpha()])
+        
+        # Early stage (first 10 keys): Easier unlock requirements to progress faster
+        if num_letter_keys <= 10:
+            # Unlock when avg difficulty < 30 and practiced at least 30 keys per letter
+            return avg_difficulty < 30 and self.total_keys > num_letter_keys * 30
+        else:
+            # Later stage: Standard requirements
+            # Unlock new key when average difficulty is low and sufficient practice
+            return avg_difficulty < 20 and self.total_keys > len(self.unlocked_keys) * 50
     
     def get_next_key_to_unlock(self):
         """Get the next key to unlock based on home row progression"""
@@ -265,11 +274,19 @@ class TextGenerator:
         total_accuracy = sum(self.stats.get_accuracy(k) for k in self.stats.unlocked_keys if k.isalpha())
         avg_accuracy = total_accuracy / max(1, len([k for k in self.stats.unlocked_keys if k.isalpha()]))
         
+        # Count available letter keys
+        num_letter_keys = len([k for k in self.stats.unlocked_keys if k.isalpha()])
+        
         # Calculate difficulty focus percentage
-        # Early (<75%): Heavily target difficult keys - words specifically chosen to practice weak spots
-        # Middle (75-90%): Moderate targeting - balance between practice and natural text
-        # Late (>90%): Light targeting - mostly natural sentences with occasional difficult key practice
-        if avg_accuracy < 75:
+        # Very early stage (< 10 keys): Much lower focus to avoid too much repetition
+        # Early (<75%): Heavily target difficult keys
+        # Middle (75-90%): Moderate targeting
+        # Late (>90%): Light targeting - mostly natural sentences
+        if num_letter_keys < 10:
+            # Special handling for very limited key sets
+            difficulty_focus = 0.5  # 50% targeting (much less to provide variety)
+            min_difficult_keys_per_word = 1  # Only require 1 difficult key
+        elif avg_accuracy < 75:
             difficulty_focus = 0.9  # 90% of words must contain difficult keys
             min_difficult_keys_per_word = 2  # Prefer words with multiple difficult keys
         elif avg_accuracy < 90:
@@ -328,6 +345,9 @@ class TypingApp:
         self.last_key_time = None
         self.session_keys = 0
         self.session_errors = 0
+        self.last_wpm = 0  # Store WPM from completed exercise
+        self.last_accuracy = 100  # Store accuracy from completed exercise
+        self.exercise_completed = False  # Track if we just finished
     
     def start_new_text(self):
         """Start a new typing exercise"""
@@ -343,6 +363,7 @@ class TypingApp:
         self.errors = 0
         self.start_time = time.time()
         self.last_key_time = self.start_time
+        self.exercise_completed = False  # Reset completion flag
     
     def process_key(self, key):
         """Process a typed key"""
@@ -367,6 +388,10 @@ class TypingApp:
             
             # Check if text completed
             if len(self.typed_text) == len(self.current_text):
+                # Store final stats before resetting
+                self.last_wpm = self.get_wpm()
+                self.last_accuracy = self.get_accuracy()
+                self.exercise_completed = True
                 return True  # Text completed
         
         return False
@@ -398,9 +423,14 @@ class TypingApp:
         title = "TypeFast - Adaptive Typing Practice"
         stdscr.addstr(0, (width - len(title)) // 2, title, curses.A_BOLD)
         
-        # Stats bar
-        wpm = self.get_wpm()
-        acc = self.get_accuracy()
+        # Stats bar - use last completed stats if just finished
+        if self.exercise_completed:
+            wpm = self.last_wpm
+            acc = self.last_accuracy
+        else:
+            wpm = self.get_wpm()
+            acc = self.get_accuracy()
+        
         stats_str = f"WPM: {wpm:3d} | Accuracy: {acc:3d}% | Keys: {self.session_keys} | Errors: {self.session_errors}"
         stdscr.addstr(1, (width - len(stats_str)) // 2, stats_str)
         
