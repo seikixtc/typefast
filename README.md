@@ -6,12 +6,14 @@ A CLI typing practice application with adaptive learning that tracks your progre
 
 ### Core Features
 - **Adaptive Key Learning**: Starts with home row keys and progressively unlocks new keys as you master current ones
-- **Intelligent Practice Text**: Generates practice text weighted toward your weakest keys
+- **Real Word Practice**: Always uses actual English words, never random characters or nonsense
+- **Intelligent Targeting**: Continuously analyzes your typing to find keys you struggle with and selects words containing those letters
+- **Progressive Text Quality**: Starts with words heavily targeting your weak keys (seems random), transitions to natural sentence-like text as you improve
 - **Real-time Statistics**: Tracks WPM (words per minute) and accuracy
 - **Per-Key Analytics**: Monitors accuracy and speed for each individual key
 - **Difficulty Scoring**: Automatically identifies which keys need more practice
 - **Persistent Progress**: Saves your statistics between sessions
-- **Progressive Unlocking**: Unlocks new keys when you've mastered current ones
+- **Smart Key Unlocking**: Unlocks new keys when you've mastered current ones
 
 ### Additional Features
 - Clean terminal UI with color-coded feedback
@@ -92,10 +94,10 @@ typefast
 ```
 TypeFast - Adaptive Typing Practice
 WPM: 45 | Accuracy: 97% | Keys: 156 | Errors: 5
-Unlocked keys: ;adfjkls
+Unlocked keys: [space]adfjkls
 ────────────────────────────────────────────────
 
-              asdf jkl; asd jkl
+              sad all ask fall lads
 
 Key Difficulty (practice needed):
   's': ████████████████░░░░  82.3 (acc: 85.2%)
@@ -112,16 +114,19 @@ Key Difficulty (practice needed):
 
 ### Progressive Learning System
 
-The app uses an intelligent progressive system:
+The app uses an intelligent progressive system with real word practice:
 
-1. **Start with home row**: You begin with `asdf jkl;`
-2. **Master current keys**: Practice until your accuracy improves
-3. **Unlock new keys**: When you've mastered current keys (avg difficulty < 20%), new keys unlock automatically
-4. **Expand outward**: Keys unlock in a logical order:
-   - Home row: `asdf jkl;`
-   - Inner keys: `gh`
-   - Top row: `qwertyuiop`
-   - Bottom row: `zxcvbnm,.`
+1. **Start with home row**: You begin with `asdf jkl` and space
+2. **Practice with targeted words**: Type real English words that heavily feature your weakest keys
+3. **Master current keys**: Practice until your accuracy improves (>75%)
+4. **Unlock new keys**: When you've mastered current keys, new keys unlock automatically
+5. **Transition to natural text**: As your accuracy increases (>90%), word selection becomes more natural and sentence-like
+6. **Expand your vocabulary**: Keys unlock in order of frequency in English
+
+The word selection is intelligent:
+- **Below 75% accuracy**: 90% of words contain multiple difficult keys (appears random but targets weak spots)
+- **75-90% accuracy**: 60% targeting, beginning to form more natural sequences  
+- **Above 90% accuracy**: 30% targeting, mostly natural sentence-like text
 
 ### Tips for Effective Practice
 
@@ -158,10 +163,11 @@ New keys unlock when:
 2. You've typed at least 50 keys per unlocked key (sufficient practice)
 
 ### Practice Text Generation
-The generator creates text weighted toward:
-- Keys with higher difficulty scores (appear more frequently)
-- Common English bigrams for natural flow (30% of the time)
-- Your currently unlocked keys only
+The generator creates text using real English words that:
+- Heavily feature your weakest keys early on (words appear random but are specifically chosen)
+- Gradually transitions to more natural word sequences as you improve
+- At high accuracy, creates sentence-like text with occasional difficult key practice
+- Always uses actual English vocabulary - no nonsense words
 
 ## Technical Details
 

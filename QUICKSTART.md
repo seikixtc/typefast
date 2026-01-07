@@ -16,11 +16,13 @@ python3 typefast.py
 
 When you first start TypeFast:
 
-1. You'll see 8 keys available: `asdf jkl;` (home row)
-2. A random practice text will appear using only those keys
+1. You'll see 8 keys available: `asdf jkl` and space (home row)
+2. Practice text with real English words will appear, heavily featuring your weakest keys
 3. Start typing! The current character is highlighted in yellow
 4. Green = correct, Red = wrong
 5. When you finish the text, a new one appears automatically
+
+The words might seem random at first (like "sad all fall ask"), but they're specifically chosen to target the keys you need to practice most. As you improve, the text becomes more natural and sentence-like.
 
 ## Understanding the Stats
 
@@ -48,16 +50,16 @@ Key Difficulty (practice needed):
 
 ## How Keys Unlock
 
-1. **Start**: 8 home row keys
-2. **Practice**: Type until you master them (>80% accuracy, decent speed)
+1. **Start**: 8 home row keys + space
+2. **Practice**: Type words until you master them (>80% accuracy, decent speed)
 3. **Unlock**: New key appears automatically!
 4. **Progress**: Keep going until you've unlocked all letters
 
-The order is smart:
-- Home row first: `asdf jkl;`
+The order is smart - based on letter frequency:
+- Home row first: `asdf jkl` + space
 - Then inner: `gh`
-- Then top row: `qwertyuiop`
-- Finally bottom: `zxcvbnm,.`
+- Most common: `eirtno`
+- Then the rest in order of frequency
 
 ## Tips for Fast Progress
 
@@ -95,6 +97,9 @@ Everything saves to `~/.typefast_stats.json`:
 Come back anytime and pick up where you left off!
 
 ## Common Questions
+
+**Q: Why do the words seem random?**
+A: They are real English words, but they're specifically chosen to feature the keys you struggle with most. As your accuracy improves (>90%), the word selection becomes more natural and sentence-like.
 
 **Q: Why am I still on home row?**
 A: You need >80% accuracy on current keys. Keep practicing!

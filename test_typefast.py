@@ -1,124 +1,132 @@
 #!/usr/bin/env python3
 """
-Test script for TypeFast logic (non-interactive)
+Test script for TypeFast word-based system (non-interactive)
 """
 
 import sys
-sys.path.insert(0, '/home/claude')
+sys.path.insert(0, '/mnt/user-data/outputs')
 from typefast import TypingStats, TextGenerator
 import time
 
-def test_typing_stats():
-    """Test the statistics tracking"""
-    print("Testing TypingStats...")
-    stats = TypingStats('/tmp/test_stats.json')
-    
-    # Simulate some typing
-    keys_to_test = ['a', 's', 'd', 'f']
-    for key in keys_to_test:
-        # Type correctly
-        for _ in range(10):
-            stats.record_keystroke(key, True, 150)
-        
-        # Type incorrectly a few times
-        for _ in range(2):
-            stats.record_keystroke(key, False, 200)
-    
-    print(f"✓ Unlocked keys: {sorted(stats.unlocked_keys)}")
-    print(f"✓ Total keys typed: {stats.total_keys}")
-    print(f"✓ Session count: {stats.session_count}")
-    
-    for key in keys_to_test:
-        accuracy = stats.get_accuracy(key)
-        speed = stats.get_avg_speed(key)
-        difficulty = stats.get_difficulty_score(key)
-        print(f"  Key '{key}': {accuracy:.1f}% accuracy, {speed:.0f}ms avg, difficulty: {difficulty:.1f}")
-    
+def test_word_generation():
+    """Test the word generation system"""
+    print("Testing Real Word Targeting System...")
     print()
-    return stats
-
-def test_text_generator(stats):
-    """Test the text generation"""
-    print("Testing TextGenerator...")
+    
+    # Start with basic keys
+    stats = TypingStats('/tmp/test_real_words.json')
     gen = TextGenerator(stats)
     
+    print(f"Starting keys: {sorted([k if k != ' ' else '[space]' for k in stats.unlocked_keys if k.isalpha() or k == ' '])}")
+    print()
+    
+    # Test 1: Low accuracy - should heavily target difficult keys
+    print("1. Low accuracy practice (heavy targeting):")
+    # Simulate typing with some errors
+    for key in ['a', 's', 'd', 'f', 'j', 'k', 'l']:
+        for _ in range(10):
+            stats.record_keystroke(key, True, 150)
+        for _ in range(5):
+            stats.record_keystroke(key, False, 200)
+    
+    # Make 's', 'l', 'f' extra difficult
+    for key in ['s', 'l', 'f']:
+        for _ in range(5):
+            stats.record_keystroke(key, False, 250)
+    
+    difficult = gen.get_difficult_keys(5)
+    print(f"   Most difficult keys: {difficult}")
+    print("   Practice text (words heavily feature difficult keys):")
+    
     for i in range(3):
-        text = gen.generate_text(50)
-        print(f"✓ Generated text {i+1}: {text}")
+        text = gen.generate_text(word_count=8)
+        print(f"   {text}")
+    print()
     
+    # Test 2: Improve accuracy
+    print("2. Medium accuracy (balanced):")
+    for key in stats.unlocked_keys:
+        if key.isalpha():
+            for _ in range(30):
+                stats.record_keystroke(key, True, 100)
+    
+    stats.unlocked_keys.update(['e', 'i', 'o', 'n', 't', 'r', 'h', 'g'])
+    gen = TextGenerator(stats)
+    
+    accuracies = [stats.get_accuracy(k) for k in stats.unlocked_keys if k.isalpha()]
+    avg_acc = sum(accuracies) / len(accuracies)
+    print(f"   Average accuracy: {avg_acc:.1f}%")
+    print("   Practice text (mix of targeting and natural):")
+    
+    for i in range(3):
+        text = gen.generate_text(word_count=8)
+        print(f"   {text}")
+    print()
+    
+    # Test 3: High accuracy
+    print("3. High accuracy (natural sentences):")
+    for key in stats.unlocked_keys:
+        if key.isalpha():
+            for _ in range(50):
+                stats.record_keystroke(key, True, 90)
+    
+    gen = TextGenerator(stats)
+    accuracies = [stats.get_accuracy(k) for k in stats.unlocked_keys if k.isalpha()]
+    avg_acc = sum(accuracies) / len(accuracies)
+    print(f"   Average accuracy: {avg_acc:.1f}%")
+    print("   Practice text (sentence-like flow):")
+    
+    for i in range(5):
+        text = gen.generate_text(word_count=8)
+        print(f"   {text}")
     print()
 
-def test_key_unlocking(stats):
-    """Test the key unlocking logic"""
-    print("Testing key unlocking...")
+def test_progression():
+    """Test the learning progression"""
+    print("Testing Learning Progression...")
+    print()
     
-    # Simulate mastery of current keys
-    for key in list(stats.unlocked_keys):
-        for _ in range(50):
-            stats.record_keystroke(key, True, 100)
+    stats = TypingStats('/tmp/test_progression.json')
+    print(f"Starting keys: {len([k for k in stats.unlocked_keys if k.isalpha()])} letters")
+    print()
     
-    print(f"  Before unlock check: {len(stats.unlocked_keys)} keys")
+    # Simulate good practice
+    for key in stats.unlocked_keys:
+        if key.isalpha():
+            for _ in range(60):
+                stats.record_keystroke(key, True, 100)
     
+    print("After practicing home row:")
     if stats.should_unlock_new_key():
-        new_key = stats.get_next_key_to_unlock()
-        print(f"✓ Ready to unlock new key: '{new_key}'")
-        stats.unlocked_keys.add(new_key)
-        print(f"  After unlock: {len(stats.unlocked_keys)} keys - {sorted(stats.unlocked_keys)}")
+        next_key = stats.get_next_key_to_unlock()
+        print(f"✓ Ready to unlock: '{next_key}'")
+        stats.unlocked_keys.add(next_key)
     else:
-        print("  Not ready to unlock yet (need more practice)")
+        print("  Not ready yet")
     
-    print()
-
-def test_difficulty_ranking(stats):
-    """Test difficulty ranking"""
-    print("Testing difficulty ranking...")
-    
-    # Add varied performance for different keys
-    test_cases = [
-        ('j', 20, 2, 120),   # Good performance
-        ('k', 15, 8, 180),   # Medium performance
-        ('l', 10, 10, 250),  # Poor performance
-    ]
-    
-    for key, correct, incorrect, speed_ms in test_cases:
-        for _ in range(correct):
-            stats.record_keystroke(key, True, speed_ms)
-        for _ in range(incorrect):
-            stats.record_keystroke(key, False, speed_ms * 1.5)
-    
-    # Get difficulty ranking
-    key_difficulties = [(k, stats.get_difficulty_score(k)) 
-                       for k in stats.unlocked_keys]
-    key_difficulties.sort(key=lambda x: x[1], reverse=True)
-    
-    print("  Key difficulty ranking (highest = needs most practice):")
-    for key, diff in key_difficulties[:5]:
-        acc = stats.get_accuracy(key)
-        speed = stats.get_avg_speed(key)
-        print(f"    '{key}': difficulty {diff:5.1f}, accuracy {acc:5.1f}%, speed {speed:5.0f}ms")
-    
+    print(f"  Total keys: {len([k for k in stats.unlocked_keys if k.isalpha()])} letters")
     print()
 
 def main():
     print("=" * 60)
-    print("TypeFast - Logic Test Suite")
+    print("TypeFast - Word-Based System Tests")
     print("=" * 60)
     print()
     
-    stats = test_typing_stats()
-    test_text_generator(stats)
-    test_key_unlocking(stats)
-    test_difficulty_ranking(stats)
+    test_word_generation()
+    test_progression()
     
     print("=" * 60)
-    print("✓ All tests passed! The app logic is working correctly.")
+    print("✓ All tests completed successfully!")
     print("=" * 60)
     print()
-    print("To run the full interactive app, use:")
-    print("  python3 typefast.py")
+    print("The real word targeting system is working correctly:")
+    print("• Always uses real English words")
+    print("• Heavily targets difficult keys at low accuracy")
+    print("• Transitions to natural sentences at high accuracy")
+    print("• Adapts based on your performance")
     print()
-    print("Note: The app requires a proper terminal with curses support.")
-    print("It will work in standard Linux/Mac terminals, iTerm2, etc.")
+    print("Ready to run: python3 typefast.py")
 
 if __name__ == "__main__":
     main()

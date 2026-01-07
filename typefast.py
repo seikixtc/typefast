@@ -30,14 +30,14 @@ class TypingStats:
                 self.key_speed = defaultdict(list, data.get('key_speed', {}))
                 self.total_keys = data.get('total_keys', 0)
                 self.session_count = data.get('session_count', 0)
-                self.unlocked_keys = set(data.get('unlocked_keys', ['a', 's', 'd', 'f', 'j', 'k', 'l', ';']))
+                self.unlocked_keys = set(data.get('unlocked_keys', ['a', 's', 'd', 'f', 'j', 'k', 'l', ' ']))
         else:
             self.key_accuracy = defaultdict(lambda: {'correct': 0, 'incorrect': 0})
             self.key_speed = defaultdict(list)
             self.total_keys = 0
             self.session_count = 0
-            # Start with home row keys
-            self.unlocked_keys = {'a', 's', 'd', 'f', 'j', 'k', 'l', ';'}
+            # Start with home row keys + space
+            self.unlocked_keys = {'a', 's', 'd', 'f', 'j', 'k', 'l', ' '}
     
     def save_stats(self):
         """Save statistics to file"""
@@ -112,10 +112,11 @@ class TypingStats:
         """Get the next key to unlock based on home row progression"""
         # Progressive key unlock order (expanding from home row)
         unlock_order = [
-            'a', 's', 'd', 'f', 'j', 'k', 'l', ';',  # home row
+            'a', 's', 'd', 'f', 'j', 'k', 'l', ' ',  # home row + space
             'g', 'h',  # inner keys
-            'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p',  # top row
-            'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.',  # bottom row
+            'e', 'i', 'r', 't', 'n', 'o',  # most common letters
+            'u', 'w', 'y', 'p', 'c', 'm',  # common letters
+            'b', 'v', 'q', 'x', 'z',  # less common
         ]
         
         for key in unlock_order:
@@ -124,65 +125,195 @@ class TypingStats:
         return None
 
 class TextGenerator:
-    """Generate practice text based on difficulty profile"""
+    """Generate practice text based on difficulty profile using words"""
     
     def __init__(self, stats):
         self.stats = stats
-        # Common English letter frequencies
-        self.frequencies = {
-            'e': 12.7, 't': 9.1, 'a': 8.2, 'o': 7.5, 'i': 7.0,
-            'n': 6.7, 's': 6.3, 'h': 6.1, 'r': 6.0, 'd': 4.3,
-            'l': 4.0, 'c': 2.8, 'u': 2.8, 'm': 2.4, 'w': 2.4,
-            'f': 2.2, 'g': 2.0, 'y': 2.0, 'p': 1.9, 'b': 1.5,
-            'v': 1.0, 'k': 0.8, 'j': 0.15, 'x': 0.15, 'q': 0.1, 'z': 0.07
-        }
         
-        # Common bigrams for more natural text
-        self.common_bigrams = [
+        # English syllable patterns for pronounceable words
+        self.consonants = 'bcdfghjklmnpqrstvwxyz'
+        self.vowels = 'aeiou'
+        
+        # Common word patterns (C=consonant, V=vowel)
+        self.syllable_patterns = [
+            'CV', 'CVC', 'VC', 'CCV', 'VCC', 'CVCC', 'CCVC'
+        ]
+        
+        # Common English words by frequency (most common first)
+        self.real_words = [
+            # 100 most common English words
+            'the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'it',
+            'for', 'not', 'on', 'with', 'he', 'as', 'you', 'do', 'at', 'this',
+            'but', 'his', 'by', 'from', 'they', 'we', 'say', 'her', 'she', 'or',
+            'an', 'will', 'my', 'one', 'all', 'would', 'there', 'their', 'what', 'so',
+            'up', 'out', 'if', 'about', 'who', 'get', 'which', 'go', 'me', 'when',
+            'make', 'can', 'like', 'time', 'no', 'just', 'him', 'know', 'take', 'people',
+            'into', 'year', 'your', 'good', 'some', 'could', 'them', 'see', 'other', 'than',
+            'then', 'now', 'look', 'only', 'come', 'its', 'over', 'think', 'also', 'back',
+            'after', 'use', 'two', 'how', 'our', 'work', 'first', 'well', 'way', 'even',
+            'new', 'want', 'because', 'any', 'these', 'give', 'day', 'most', 'us', 'is',
+            # Additional common words
+            'was', 'are', 'been', 'has', 'had', 'were', 'said', 'did', 'may', 'must',
+            'such', 'here', 'where', 'why', 'find', 'long', 'down', 'call', 'own', 'old',
+            'right', 'left', 'high', 'low', 'fast', 'slow', 'big', 'small', 'great', 'best',
+            'man', 'woman', 'child', 'world', 'life', 'hand', 'part', 'place', 'case', 'point',
+            'ask', 'seem', 'feel', 'try', 'leave', 'hand', 'keep', 'let', 'begin', 'help',
+            'show', 'hear', 'play', 'run', 'move', 'live', 'believe', 'bring', 'happen', 'write',
+            'sit', 'stand', 'lose', 'pay', 'meet', 'include', 'continue', 'set', 'learn', 'change',
+            'lead', 'understand', 'watch', 'follow', 'stop', 'create', 'speak', 'read', 'allow', 'add'
+        ]
+        
+        # Common bigrams and trigrams for natural words
+        self.common_bigrams = {
             'th', 'he', 'in', 'er', 'an', 're', 'on', 'at', 'en', 'nd',
             'ti', 'es', 'or', 'te', 'of', 'ed', 'is', 'it', 'al', 'ar',
-            'st', 'to', 'nt', 'ng', 'se', 'ha', 'as', 'ou', 'io', 'le'
-        ]
+            'st', 'to', 'nt', 'ng', 'se', 'ha', 'as', 'ou', 'io', 'le',
+            'ea', 'ch', 'wh', 'sh', 'oo', 'ee', 'ai', 'ay', 'ly', 'el'
+        }
+        
+        self.common_trigrams = {
+            'the', 'and', 'ing', 'ion', 'tio', 'ent', 'ati', 'for', 'her', 'ter',
+            'hat', 'tha', 'ere', 'ate', 'his', 'con', 'ver', 'all', 'ons', 'est'
+        }
     
-    def generate_text(self, length=50):
-        """Generate practice text weighted toward difficult keys"""
+    def can_type_word(self, word):
+        """Check if all letters in word are unlocked"""
+        return all(c in self.stats.unlocked_keys for c in word.lower())
+    
+    def get_usable_real_words(self):
+        """Get real words that can be typed with unlocked keys"""
+        return [w for w in self.real_words if self.can_type_word(w)]
+    
+    def generate_pronounceable_word(self, min_len=3, max_len=7, target_keys=None):
+        """Generate a pronounceable pseudo-word targeting specific keys"""
         unlocked = list(self.stats.unlocked_keys)
         if not unlocked:
-            return "asdf jkl;"
+            return "asdf"
         
-        # Build weighted key pool
-        key_weights = {}
-        for key in unlocked:
-            if key in ';,.':  # Handle special chars
-                key_weights[key] = 5  # Lower weight for special chars
-            else:
-                difficulty = self.stats.get_difficulty_score(key)
-                # More difficult keys appear more often
-                key_weights[key] = max(10, difficulty + 20)
+        # Get available consonants and vowels
+        available_consonants = [c for c in self.consonants if c in unlocked]
+        available_vowels = [c for c in self.vowels if c in unlocked]
         
-        # Generate text
-        text = []
-        for _ in range(length):
-            # 70% of time use weighted selection, 30% try natural bigrams
-            if random.random() < 0.7 or len(text) == 0:
-                keys = list(key_weights.keys())
-                weights = list(key_weights.values())
-                char = random.choices(keys, weights=weights)[0]
-                text.append(char)
+        if not available_consonants or not available_vowels:
+            # Fallback to any available letters
+            return ''.join(random.choices(unlocked, k=random.randint(min_len, max_len)))
+        
+        # Build word using syllable patterns
+        word = []
+        target_length = random.randint(min_len, max_len)
+        
+        # If we have target keys (difficult keys), try to include them
+        if target_keys:
+            # Start with a target key
+            start_key = random.choice(target_keys)
+            word.append(start_key)
+            is_vowel = start_key in available_vowels
+        else:
+            # Start with consonant or vowel randomly
+            is_vowel = random.random() < 0.3
+            if is_vowel:
+                word.append(random.choice(available_vowels))
             else:
-                # Try to form bigrams
-                last_char = text[-1]
-                possible_bigrams = [bg for bg in self.common_bigrams 
-                                   if bg[0] == last_char and bg[1] in unlocked]
-                if possible_bigrams:
-                    bigram = random.choice(possible_bigrams)
-                    text.append(bigram[1])
+                word.append(random.choice(available_consonants))
+        
+        # Build rest of word with alternating pattern
+        while len(word) < target_length:
+            if is_vowel:
+                # Add consonant
+                if target_keys:
+                    # Try to use a difficult consonant
+                    difficult_consonants = [c for c in target_keys if c in available_consonants]
+                    if difficult_consonants and random.random() < 0.5:
+                        word.append(random.choice(difficult_consonants))
+                    else:
+                        word.append(random.choice(available_consonants))
                 else:
-                    keys = list(key_weights.keys())
-                    weights = list(key_weights.values())
-                    text.append(random.choices(keys, weights=weights)[0])
+                    word.append(random.choice(available_consonants))
+                is_vowel = False
+            else:
+                # Add vowel
+                if target_keys:
+                    difficult_vowels = [v for v in target_keys if v in available_vowels]
+                    if difficult_vowels and random.random() < 0.5:
+                        word.append(random.choice(difficult_vowels))
+                    else:
+                        word.append(random.choice(available_vowels))
+                else:
+                    word.append(random.choice(available_vowels))
+                is_vowel = True
         
-        return ''.join(text)
+        return ''.join(word)
+    
+    def get_difficult_keys(self, count=3):
+        """Get the most difficult keys that need practice"""
+        key_difficulties = [(k, self.stats.get_difficulty_score(k)) 
+                           for k in self.stats.unlocked_keys 
+                           if k.isalpha()]  # Only letters, no punctuation
+        key_difficulties.sort(key=lambda x: x[1], reverse=True)
+        return [k for k, _ in key_difficulties[:count]]
+    
+    def generate_text(self, word_count=10):
+        """Generate practice text with words targeting difficult keys"""
+        real_words = self.get_usable_real_words()
+        difficult_keys = self.get_difficult_keys(count=5)  # Get top 5 difficult keys
+        
+        if not real_words:
+            # Fallback if no real words available with current keys
+            return ' '.join([self.generate_pronounceable_word(3, 6) for _ in range(word_count)])
+        
+        # Determine how much to focus on difficult keys based on progress
+        total_accuracy = sum(self.stats.get_accuracy(k) for k in self.stats.unlocked_keys if k.isalpha())
+        avg_accuracy = total_accuracy / max(1, len([k for k in self.stats.unlocked_keys if k.isalpha()]))
+        
+        # Calculate difficulty focus percentage
+        # Early (<75%): Heavily target difficult keys - words specifically chosen to practice weak spots
+        # Middle (75-90%): Moderate targeting - balance between practice and natural text
+        # Late (>90%): Light targeting - mostly natural sentences with occasional difficult key practice
+        if avg_accuracy < 75:
+            difficulty_focus = 0.9  # 90% of words must contain difficult keys
+            min_difficult_keys_per_word = 2  # Prefer words with multiple difficult keys
+        elif avg_accuracy < 90:
+            difficulty_focus = 0.6  # 60% focus on difficult keys
+            min_difficult_keys_per_word = 1  # At least one difficult key per word
+        else:
+            difficulty_focus = 0.3  # 30% focus, mostly natural
+            min_difficult_keys_per_word = 0  # Natural word choice
+        
+        # Categorize words by how many difficult keys they contain
+        words_by_difficulty = {i: [] for i in range(6)}
+        for word in real_words:
+            difficult_count = sum(1 for k in difficult_keys if k in word)
+            if difficult_count < 6:
+                words_by_difficulty[difficult_count].append(word)
+        
+        words = []
+        for _ in range(word_count):
+            if difficult_keys and random.random() < difficulty_focus:
+                # Pick word that contains difficult keys
+                # Try to find words with minimum required difficult keys
+                candidates = []
+                for difficulty_level in range(5, min_difficult_keys_per_word - 1, -1):
+                    if words_by_difficulty[difficulty_level]:
+                        candidates.extend(words_by_difficulty[difficulty_level])
+                        if difficulty_level >= min_difficult_keys_per_word:
+                            break
+                
+                if candidates:
+                    words.append(random.choice(candidates))
+                else:
+                    # Fallback to any word
+                    words.append(random.choice(real_words))
+            else:
+                # Natural word selection
+                words.append(random.choice(real_words))
+        
+        # High accuracy: try to make more sentence-like by starting with articles/common starters
+        if avg_accuracy > 90:
+            sentence_starters = [w for w in real_words if w in ['the', 'a', 'this', 'that', 'these', 'those', 'my', 'your', 'our', 'some', 'many']]
+            if sentence_starters and words:
+                words[0] = random.choice(sentence_starters)
+        
+        return ' '.join(words)
 
 class TypingApp:
     """Main typing practice application"""
@@ -207,7 +338,7 @@ class TypingApp:
                 self.stats.unlocked_keys.add(new_key)
                 self.stats.save_stats()
         
-        self.current_text = self.generator.generate_text()
+        self.current_text = self.generator.generate_text(word_count=8)
         self.typed_text = ""
         self.errors = 0
         self.start_time = time.time()
@@ -274,7 +405,8 @@ class TypingApp:
         stdscr.addstr(1, (width - len(stats_str)) // 2, stats_str)
         
         # Unlocked keys
-        unlocked_str = f"Unlocked keys: {''.join(sorted(self.stats.unlocked_keys))}"
+        unlocked_display = ''.join(sorted([k if k != ' ' else '[space]' for k in self.stats.unlocked_keys]))
+        unlocked_str = f"Unlocked keys: {unlocked_display}"
         stdscr.addstr(2, 2, unlocked_str, curses.A_DIM)
         
         # Separator
@@ -315,9 +447,10 @@ class TypingApp:
         difficulty_row = text_start_row + 3
         stdscr.addstr(difficulty_row, 2, "Key Difficulty (practice needed):", curses.A_BOLD)
         
-        # Sort keys by difficulty
+        # Sort keys by difficulty (exclude space from difficulty display)
         key_difficulties = [(k, self.stats.get_difficulty_score(k)) 
-                           for k in self.stats.unlocked_keys]
+                           for k in self.stats.unlocked_keys
+                           if k != ' ']  # Don't show space in difficulty chart
         key_difficulties.sort(key=lambda x: x[1], reverse=True)
         
         display_count = min(8, len(key_difficulties))

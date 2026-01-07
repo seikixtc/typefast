@@ -9,14 +9,14 @@ TypeFast is a single Python file, making it easy to customize. Here are the main
 **Location**: `TypingStats.__init__()` method, line ~37
 
 ```python
-# Default: Home row
-self.unlocked_keys = {'a', 's', 'd', 'f', 'j', 'k', 'l', ';'}
+# Default: Home row + space
+self.unlocked_keys = {'a', 's', 'd', 'f', 'j', 'k', 'l', ' '}
 
 # Alternative: All letters immediately
-self.unlocked_keys = set('abcdefghijklmnopqrstuvwxyz')
+self.unlocked_keys = set('abcdefghijklmnopqrstuvwxyz ')
 
-# Alternative: Programmer's keys
-self.unlocked_keys = {'a', 's', 'd', 'f', '{', '}', '(', ')', '[', ']'}
+# Alternative: Most common English letters
+self.unlocked_keys = {'e', 't', 'a', 'o', 'i', 'n', 's', ' '}
 ```
 
 ## 2. Key Unlock Order
@@ -25,15 +25,24 @@ self.unlocked_keys = {'a', 's', 'd', 'f', '{', '}', '(', ')', '[', ']'}
 
 ```python
 unlock_order = [
-    'a', 's', 'd', 'f', 'j', 'k', 'l', ';',  # home row
+    'a', 's', 'd', 'f', 'j', 'k', 'l', ' ',  # home row + space
     'g', 'h',  # inner keys
-    # Add your preferred order here
+    'e', 'i', 'r', 't', 'n', 'o',  # most common letters
+    'u', 'w', 'y', 'p', 'c', 'm',  # common letters
+    'b', 'v', 'q', 'x', 'z',  # less common
 ]
 
 # Example: Dvorak layout
 unlock_order = [
-    'a', 'o', 'e', 'u', 'h', 't', 'n', 's',  # Dvorak home row
+    'a', 'o', 'e', 'u', 'h', 't', 'n', 's', ' ',  # Dvorak home row
     # ... rest of dvorak
+]
+
+# Example: Frequency-first approach
+unlock_order = [
+    'e', 't', 'a', 'o', 'i', 'n', ' ',  # highest frequency
+    's', 'h', 'r', 'd', 'l',
+    # ... rest by frequency
 ]
 ```
 
@@ -52,22 +61,7 @@ return avg_difficulty < 30 and self.total_keys > len(self.unlocked_keys) * 30
 return avg_difficulty < 10 and self.total_keys > len(self.unlocked_keys) * 100
 ```
 
-## 4. Practice Text Length
-
-**Location**: `start_new_text()` method, line ~223
-
-```python
-# Default: 50 characters
-self.current_text = self.generator.generate_text()
-
-# Shorter exercises
-self.current_text = self.generator.generate_text(30)
-
-# Longer exercises
-self.current_text = self.generator.generate_text(100)
-```
-
-## 5. Difficulty Calculation
+## 7. Color Scheme
 
 **Location**: `get_difficulty_score()` method, line ~69
 
@@ -82,22 +76,56 @@ difficulty = (accuracy_score * 0.5) + (speed_score * 0.5)
 difficulty = accuracy_score
 ```
 
-## 6. Text Generation Style
+## 5. Difficulty Targeting Intensity
 
-**Location**: `generate_text()` method, line ~140
+**Location**: `generate_text()` method, line ~255
 
 ```python
-# Default: 70% weighted selection, 30% bigrams
-if random.random() < 0.7 or len(text) == 0:
+# Default: Adaptive targeting based on accuracy
+if avg_accuracy < 75:
+    difficulty_focus = 0.9  # 90% words contain difficult keys
+    min_difficult_keys_per_word = 2
+elif avg_accuracy < 90:
+    difficulty_focus = 0.6  # 60% targeting
+    min_difficult_keys_per_word = 1
+else:
+    difficulty_focus = 0.3  # 30% targeting
 
-# More natural text (more bigrams)
-if random.random() < 0.3 or len(text) == 0:
+# More aggressive targeting (harder practice)
+if avg_accuracy < 75:
+    difficulty_focus = 1.0
+    min_difficult_keys_per_word = 3
+elif avg_accuracy < 90:
+    difficulty_focus = 0.8
+    min_difficult_keys_per_word = 2
+else:
+    difficulty_focus = 0.5
 
-# Pure weighted selection (more focus on weak keys)
-if True:  # Always use weighted selection
+# More relaxed targeting (easier, more natural)
+if avg_accuracy < 75:
+    difficulty_focus = 0.7
+    min_difficult_keys_per_word = 1
+elif avg_accuracy < 90:
+    difficulty_focus = 0.4
+    min_difficult_keys_per_word = 1
+else:
+    difficulty_focus = 0.1
 ```
 
-## 7. Color Scheme
+## 6. Number of Words Per Exercise
+
+**Location**: `start_new_text()` method, line ~223
+
+```python
+# Default: 8 words
+self.current_text = self.generator.generate_text(word_count=8)
+
+# Shorter exercises
+self.current_text = self.generator.generate_text(word_count=5)
+
+# Longer exercises
+self.current_text = self.generator.generate_text(word_count=15)
+```
 
 **Location**: `run()` method, line ~316
 
@@ -167,6 +195,31 @@ stdscr.timeout(200)
 ```
 
 ## Advanced Feature Ideas
+
+### Customize Word List
+
+Add your own vocabulary by modifying `self.real_words` in `TextGenerator.__init__()`:
+
+```python
+# Domain-specific vocabulary
+self.real_words = [
+    # Programming terms
+    'code', 'function', 'variable', 'class', 'method', 'array',
+    'string', 'loop', 'if', 'else', 'return', 'import', 'def',
+    # ... add more
+]
+
+# Medical vocabulary
+self.real_words = [
+    'patient', 'diagnosis', 'treatment', 'symptom', 'medicine',
+    # ... add more
+]
+
+# Your own practice text
+self.real_words = [
+    # Words from your job, hobby, etc.
+]
+```
 
 ### Add Word Mode
 
