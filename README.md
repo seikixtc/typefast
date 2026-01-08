@@ -1,222 +1,163 @@
-# TypeFast - Terminal-Based Adaptive Typing Practice
+# TypeFast
 
-A CLI typing practice application with adaptive learning that tracks your progress and focuses on the keys you need to practice most.
+[![PyPI version](https://badge.fury.io/py/typefast.svg)](https://pypi.org/project/typefast/)
+[![Python 3.6+](https://img.shields.io/badge/python-3.6+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-## Features
+Terminal-based adaptive typing practice with progressive key learning and intelligent difficulty adjustment.
 
-### Core Features
-- **Adaptive Key Learning**: Starts with home row keys and progressively unlocks new keys as you master current ones
-- **Real Word Practice**: Always uses actual English words, never random characters or nonsense
-- **Intelligent Targeting**: Continuously analyzes your typing to find keys you struggle with and selects words containing those letters
-- **Progressive Text Quality**: Starts with words heavily targeting your weak keys (seems random), transitions to natural sentence-like text as you improve
-- **Real-time Statistics**: Tracks WPM (words per minute) and accuracy
-- **Per-Key Analytics**: Monitors accuracy and speed for each individual key
-- **Difficulty Scoring**: Automatically identifies which keys need more practice
-- **Persistent Progress**: Saves your statistics between sessions
-- **Smart Key Unlocking**: Unlocks new keys when you've mastered current ones
+## ✨ Features
 
-### Additional Features
-- Clean terminal UI with color-coded feedback
-- Real-time visual difficulty bars for each key
-- Session tracking across multiple practice sessions
-- Natural text generation using common bigrams
-- Immediate visual feedback (green = correct, red = error)
+- 🎯 **Adaptive Learning** - Progressively unlocks keys as you master them
+- 📊 **Real-time Analytics** - Track WPM, accuracy, and performance trends
+- 🔄 **Intelligent Targeting** - Focuses practice on your weakest keys
+- 📈 **Progress Visualization** - Beautiful ASCII charts showing improvement over time
+- ⌨️ **Keybr-Style Error Handling** - Must type correct key to advance, wrong keys highlighted in red
+- 🎨 **Clean Terminal UI** - Minimal, distraction-free interface
+- 💾 **Persistent Stats** - Your progress is saved between sessions
+- 🏆 **Performance Tracking** - View top speed, consistency scores, and detailed per-key analysis
 
-## Installation
+## 🚀 Quick Start
 
-### Requirements
-- Python 3.6 or higher
-- Unix-like terminal (Linux, macOS, WSL on Windows)
-
-### Quick Install
-
-**One-line installer** (after setting up on GitHub):
-```bash
-curl -sSL https://raw.githubusercontent.com/YOUR_USERNAME/typefast/main/install.sh | bash
-```
-
-**Manual install**:
-1. Download the script:
-```bash
-curl -O https://raw.githubusercontent.com/YOUR_USERNAME/typefast/main/typefast.py
-chmod +x typefast.py
-```
-
-Or simply copy the `typefast.py` file to your system.
-
-2. Run it:
-```bash
-python3 typefast.py
-```
-
-### Optional: Install Globally
-
-To make it accessible from anywhere:
+### Installation
 
 ```bash
-# Copy to local bin
-sudo cp typefast.py /usr/local/bin/typefast
-sudo chmod +x /usr/local/bin/typefast
-
-# Now you can run it from anywhere
-typefast
+pip install typefast
 ```
 
-## Usage
+### Run
 
-### Starting the App
-
-```bash
-python3 typefast.py
-```
-
-Or if installed globally:
 ```bash
 typefast
 ```
 
-### How to Practice
+That's it! Start typing and improve your skills.
 
-1. **Type the displayed text**: The current character to type is highlighted with a yellow background
-2. **Color feedback**:
-   - Green = correctly typed
-   - Red = error
-   - Dim gray = not yet typed
-   - Yellow highlight = current character
+## 📖 How It Works
 
-3. **Controls**:
-   - Type normally to practice
-   - Press `Backspace` to restart current exercise
-   - Press `Ctrl+C` to quit and save progress
+TypeFast uses an adaptive learning system that:
+
+1. **Starts Simple** - Begin with just the home row keys (a, s, d, f, j, k, l)
+2. **Tracks Performance** - Monitors your speed and accuracy for each key
+3. **Unlocks Progressively** - Adds new keys when you've mastered current ones
+4. **Targets Weaknesses** - Generates exercises focusing on your difficult keys
+5. **Shows Progress** - Visualizes your improvement over time with charts and statistics
+
+## 🎮 Usage
+
+### Basic Controls
+
+- **Type** - Just start typing the displayed text
+- **Backspace** - Skip current exercise and start a new one
+- **Cmd+/Cmd-** - Increase/decrease font size
+- **Ctrl+C** - Quit and save progress
+- **Resize Terminal** - Drag terminal bigger to see extended statistics
 
 ### Understanding the Interface
 
 ```
 TypeFast - Adaptive Typing Practice
-WPM: 45 | Accuracy: 97% | Keys: 156 | Errors: 5
-Unlocked keys: [space]adfjkls
-────────────────────────────────────────────────
+WPM: 87 | Accuracy: 92% | Keys: 325 | Errors: 12
 
-              sad all ask fall lads
+some hand fast first fast them play go first fast
+
+Last 5: 118wpm | 93wpm | 81wpm | 89wpm | 94wpm
+Avg: 88wpm | Top: 120wpm | Consistency: 83%
 
 Key Difficulty (practice needed):
-  's': ████████████████░░░░  82.3 (acc: 85.2%)
-  'l': ████████████░░░░░░░░  65.1 (acc: 89.5%)
-  'f': ██████░░░░░░░░░░░░░░  32.4 (acc: 95.1%)
+'t': ████████████████░░░░ 39.5 (acc: 86.5%)
+'y': ████████████░░░░░░░░ 33.6 (acc: 88.9%)
+...
+
+Per-Key Speed Analysis:
+Fastest: u:117wpm | e:108wpm | n:101wpm
+Slowest: g:65wpm | y:62wpm | t:59wpm
+
+WPM Progress - All Time (325 rounds):
+[Beautiful ASCII line chart showing your progress]
 ```
 
-- **WPM**: Your current words per minute
-- **Accuracy**: Percentage of correct keystrokes
-- **Keys**: Total keys typed this session
-- **Errors**: Total errors this session
-- **Unlocked keys**: All keys currently available for practice
-- **Key Difficulty**: Shows which keys need the most practice (higher = needs more work)
+### Color Coding
 
-### Progressive Learning System
+- 🟢 **Green** - Correctly typed characters
+- 🔴 **Red** - Characters where you made mistakes
+- **White/Highlighted** - Current character to type
+- **Gray** - Not yet typed
 
-The app uses an intelligent progressive system with real word practice:
+## 📊 Statistics Explained
 
-1. **Start with home row**: You begin with `asdf jkl` and space
-2. **Practice with targeted words**: Type real English words that heavily feature your weakest keys
-3. **Master current keys**: Practice until your accuracy improves (>75%)
-4. **Unlock new keys**: When you've mastered current keys, new keys unlock automatically
-5. **Transition to natural text**: As your accuracy increases (>90%), word selection becomes more natural and sentence-like
-6. **Expand your vocabulary**: Keys unlock in order of frequency in English
+### Main Stats
+- **WPM** - Words per minute (5 characters = 1 word)
+- **Accuracy** - Percentage of keystrokes without errors
+- **Top Speed** - Your personal best WPM
+- **Consistency** - How stable your performance is (lower variance = higher score)
 
-The word selection is intelligent:
-- **Below 75% accuracy**: 90% of words contain multiple difficult keys (appears random but targets weak spots)
-- **75-90% accuracy**: 60% targeting, beginning to form more natural sequences  
-- **Above 90% accuracy**: 30% targeting, mostly natural sentence-like text
+### Advanced Stats (Tall Terminal)
+- **Per-Key Speed** - Individual WPM for each key
+- **Session Stats** - Current session accuracy and key count
+- **Progress Chart** - All-time WPM trend across all sessions
 
-### Tips for Effective Practice
+## 🎯 Tips for Improvement
 
-1. **Focus on accuracy first**: Speed will come naturally with accuracy
-2. **Watch the difficulty bars**: They show which keys need more attention
-3. **Practice regularly**: Short, frequent sessions are more effective than long ones
-4. **Don't look at the keyboard**: Force yourself to learn by feel
-5. **Maintain good posture**: Proper ergonomics prevent fatigue
+1. **Don't Look at Keyboard** - Force yourself to use touch typing
+2. **Accuracy First** - Speed comes naturally with accuracy
+3. **Practice Weak Keys** - TypeFast automatically targets these
+4. **Regular Sessions** - 10-15 minutes daily beats marathon sessions
+5. **Proper Posture** - Sit correctly and position hands on home row
+6. **Use All Fingers** - Don't hunt-and-peck with index fingers
 
-## Data Storage
+## 🛠️ Advanced Usage
 
-Your progress is saved in `~/.typefast_stats.json` and includes:
-- Per-key accuracy statistics
-- Per-key speed measurements
-- Total keys typed
-- Session count
-- Unlocked keys
+### File Locations
 
-You can reset your progress by deleting this file:
+TypeFast stores data in your home directory:
+
+```
+~/.typefast_stats.json       # Key statistics and progress
+~/.typefast_history.json     # Historical WPM data
+```
+
+### Reset Progress
+
+To start fresh:
+
 ```bash
-rm ~/.typefast_stats.json
+rm ~/.typefast_stats.json ~/.typefast_history.json
 ```
 
-## How the Adaptive Learning Works
+### Customize Terminal
 
-### Difficulty Scoring
-Each key gets a difficulty score (0-100) based on:
-- **Accuracy (70% weight)**: How often you type it correctly
-- **Speed (30% weight)**: How fast you type it compared to average
+For best experience:
+- **Font Size**: Use Cmd+/- to adjust
+- **Window Size**: Drag larger to see more stats
+- **Color Scheme**: Use a dark terminal theme
 
-### Key Unlocking Algorithm
-New keys unlock when:
-1. Average difficulty of current keys < 20%
-2. You've typed at least 50 keys per unlocked key (sufficient practice)
+## 🤝 Contributing
 
-### Practice Text Generation
-The generator creates text using real English words that:
-- Heavily feature your weakest keys early on (words appear random but are specifically chosen)
-- Gradually transitions to more natural word sequences as you improve
-- At high accuracy, creates sentence-like text with occasional difficult key practice
-- Always uses actual English vocabulary - no nonsense words
+Contributions welcome! Feel free to:
 
-## Technical Details
+- Report bugs
+- Suggest features
+- Submit pull requests
+- Improve documentation
 
-- **Language**: Python 3
-- **UI Library**: curses (built-in)
-- **Storage**: JSON file in home directory
-- **Statistics**: Rolling window of last 50 keystrokes per key
-- **Performance**: Updates at 10 FPS (100ms refresh)
+## 📝 License
 
-## Customization
+MIT License - see [LICENSE](LICENSE) for details
 
-You can modify the script to customize:
+## 🙏 Acknowledgments
 
-- **Starting keys**: Change `self.unlocked_keys` in `TypingStats.__init__`
-- **Unlock threshold**: Modify the difficulty threshold in `should_unlock_new_key()`
-- **Text length**: Adjust `length` parameter in `generate_text()`
-- **Key unlock order**: Edit `unlock_order` in `get_next_key_to_unlock()`
-- **Colors**: Modify `curses.init_pair()` calls in the `run()` method
+Inspired by [keybr.com](https://www.keybr.com/) and other typing practice tools.
 
-## Troubleshooting
+## 📧 Contact
 
-### Issue: Colors not showing
-Some terminals don't support colors. Try a modern terminal like iTerm2, Alacritty, or Terminal.app.
+- GitHub: [@seikixtc](https://github.com/seikixtc)
+- Issues: [GitHub Issues](https://github.com/seikixtc/typefast/issues)
 
-### Issue: Keys not registering
-Make sure your terminal window is focused and you're not in a screen/tmux session that's capturing keys.
+## 🌟 Star History
 
-### Issue: Display looks wrong
-Resize your terminal to at least 80x24 characters for best results.
-
-### Issue: Permission denied
-Make sure the script is executable:
-```bash
-chmod +x typefast.py
-```
-
-## Contributing
-
-This is a single-file Python script, making it easy to modify. Feel free to:
-- Add new features
-- Improve the text generation algorithm
-- Add word-based practice modes
-- Implement lessons or structured courses
-- Add support for special characters and numbers
-
-## License
-
-MIT License - feel free to use, modify, and distribute.
+If you find TypeFast useful, please consider giving it a star on GitHub!
 
 ---
 
-Happy typing! 🎹✨
+**Happy Typing!** 🎹
