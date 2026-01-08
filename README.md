@@ -24,6 +24,7 @@ Terminal-based adaptive typing practice with progressive key learning and intell
 ```bash
 pip install typefast
 ```
+**Note for Mac users:** If `pip` doesn't work, use `pip3 install typefast`
 
 ### Run
 
